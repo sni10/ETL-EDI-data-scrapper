@@ -1,4 +1,4 @@
-name: Release
+name: Create Release
 
 on:
   pull_request:
@@ -8,79 +8,54 @@ on:
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true && github.head_ref == 'stage'
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'stage'
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
+      pull-requests: read
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: main
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Get latest tag
-      id: get_tag
-      run: |
-        git fetch --tags
-        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
-        echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-        echo "Latest tag: $LATEST_TAG"
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          # Get the latest tag, if no tags exist use v0.0.0
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
 
-    - name: Bump version
-      id: bump_version
-      run: |
-        LATEST_TAG="${{ steps.get_tag.outputs.latest_tag }}"
-        VERSION=${LATEST_TAG#v}
-        IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
-        MAJOR=${VERSION_PARTS[0]}
-        MINOR=${VERSION_PARTS[1]}
-        PATCH=${VERSION_PARTS[2]}
+      - name: Calculate next version
+        id: calculate_version
+        run: |
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
 
-        # Check commit messages for version bump type
-        COMMITS=$(git log $LATEST_TAG..HEAD --pretty=format:"%s")
+          # Remove 'v' prefix and split version
+          VERSION=${LATEST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 
-        if echo "$COMMITS" | grep -qiE "^(feat|feature|breaking|major)"; then
-          MINOR=$((MINOR + 1))
-          PATCH=0
-        else
+          # Increment patch version
           PATCH=$((PATCH + 1))
-        fi
 
-        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
-        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-        echo "New version: $NEW_VERSION"
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
 
-    - name: Create and push tag
-      run: |
-        NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION"
-        git push origin "$NEW_VERSION"
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.calculate_version.outputs.new_version }}
+          name: Release ${{ steps.calculate_version.outputs.new_version }}
+          body: |
+            ## Changes in this Release
 
-    - name: Generate changelog
-      id: changelog
-      run: |
-        LATEST_TAG="${{ steps.get_tag.outputs.latest_tag }}"
-        NEW_VERSION="${{ steps.bump_version.outputs.new_version }}"
+            Merged from stage to main via PR #${{ github.event.pull_request.number }}
 
-        CHANGELOG="## Changes in $NEW_VERSION \n\n"
-        CHANGELOG+=$(git log $LATEST_TAG..HEAD --pretty=format:"- %s (%h)" | tr '\n' '|')
-        CHANGELOG=$(echo "$CHANGELOG" | tr '|' '\n')
+            **Pull Request:** ${{ github.event.pull_request.title }}
 
-        echo "changelog<<HEREDOC_DELIMITER" >> $GITHUB_OUTPUT
-        echo "$CHANGELOG" >> $GITHUB_OUTPUT
-        echo "HEREDOC_DELIMITER" >> $GITHUB_OUTPUT
-
-    - name: Create GitHub Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.bump_version.outputs.new_version }}
-        release_name: Release ${{ steps.bump_version.outputs.new_version }}
-        body: ${{ steps.changelog.outputs.changelog }}
-        draft: false
-        prerelease: false
+            For detailed changes, see the [Pull Request](${{ github.event.pull_request.html_url }})
+          draft: false
+          prerelease: false
