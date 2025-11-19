@@ -1,0 +1,5 @@
+
+services:
+    php-up-edi:
+        network_mode: "host"
+        command: composer run-script serve

@@ -1,0 +1,79 @@
+@startuml
+interface InputHandlerInterface {
+    +readData(): DataCollection
+}
+
+class GoogleSheetInputHandler implements InputHandlerInterface
+class CsvInputHandler implements InputHandlerInterface
+class XlsxInputHandler implements InputHandlerInterface
+class XlsInputHandler implements InputHandlerInterface
+
+interface DataProcessorInterface {
+    +process(dataCollection: DataCollection): DataCollection
+}
+
+class UpcDataProcessor implements DataProcessorInterface
+
+interface PriceServiceInterface {
+    +getPrice(upc: string): float
+}
+
+class ApiPriceService implements PriceServiceInterface
+class WebScraperPriceService implements PriceServiceInterface
+
+class Mapper {
+    +mapColumns(dataCollection: DataCollection): DataCollection
+}
+
+class Aggregator {
+    -inputHandler: InputHandlerInterface
+    -dataProcessor: DataProcessorInterface
+    -priceService: PriceServiceInterface
+    -mapper: Mapper
+    -kafkaProducer: KafkaProducer
+    +aggregate(jsonInput: string): void
+}
+
+class KafkaConsumer {
+    -aggregator: Aggregator
+    +consume()
+}
+
+class KafkaProducer {
+    +produce(dataRow: DataRow)
+}
+
+class DataRow {
+    +iteration_id: int
+    +updated_at: DateTime
+    +UPC: string
+    +ASIN: string
+    +price: float
+    +quantity: int
+}
+
+class DataCollection {
+    -dataRows: DataRow[]
+    +add(DataRow dataRow)
+    +getRows(): DataRow[]
+}
+
+KafkaConsumer --> Aggregator
+Aggregator --> InputHandlerInterface
+Aggregator --> DataProcessorInterface
+Aggregator --> PriceServiceInterface
+Aggregator --> Mapper
+Aggregator --> KafkaProducer
+Aggregator ..> DataRow
+Aggregator ..> DataCollection
+
+InputHandlerInterface <|.. GoogleSheetInputHandler
+InputHandlerInterface <|.. CsvInputHandler
+InputHandlerInterface <|.. XlsxInputHandler
+InputHandlerInterface <|.. XlsInputHandler
+
+DataProcessorInterface <|.. UpcDataProcessor
+
+PriceServiceInterface <|.. ApiPriceService
+PriceServiceInterface <|.. WebScraperPriceService
+@enduml

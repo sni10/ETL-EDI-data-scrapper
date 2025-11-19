@@ -1,0 +1,15 @@
+auth:
+  type: DISABLED
+
+kafka:
+  clusters:
+    - bootstrapServers:
+        - "%env(KAFKA_EDI_SERVER_HOST)%:%env(KAFKA_EDI_SERVER_PORT)%"
+      name: LOCAL
+      properties: {}
+      readOnly: false
+
+rbac:
+  roles: []
+
+webclient: {}

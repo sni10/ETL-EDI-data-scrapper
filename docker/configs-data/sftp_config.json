@@ -1,0 +1,27 @@
+{
+  "100": {
+    "sftp": {
+      "host": "sftp.example-supplier-1.com",
+      "port": 22,
+      "username": "example_user_1",
+      "password": "ExAmPlEpAsSwOrD123!",
+      "remotePath": "/data/feeds/production"
+    },
+    "proxy": {
+      "host": "proxy.example.com",
+      "port": 5000,
+      "username": "proxy_user",
+      "password": "Pr0xyP@ssw0rd!"
+    }
+  },
+  "101": {
+    "sftp": {
+      "host": "transfer.example-supplier-2.com",
+      "port": 22,
+      "username": "example_user_2",
+      "password": "An0th3rP@ssw0rd456#",
+      "remotePath": "/home/feeds"
+    },
+    "proxy": {}
+  }
+}

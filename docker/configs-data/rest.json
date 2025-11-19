@@ -1,0 +1,22 @@
+{
+  "100": {
+    "name": "Example REST API Supplier",
+    "base_uri": "https://api.example-supplier.com",
+    "verify_ssl": true,
+    "auth": {
+      "token_uri": "/api/v1/auth/login",
+      "token_json": true,
+      "token_include_company_in_body": true,
+      "username": "api_user_example",
+      "password": "ExAmPlEaPiP@ss123",
+      "company_id": 999
+    },
+    "items": {
+      "uri": "/api/v1/products",
+      "method": "GET",
+      "page_size": 100,
+      "page_param": "page",
+      "size_param": "per_page"
+    }
+  }
+}

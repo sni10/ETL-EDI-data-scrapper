@@ -1,0 +1,99 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    App\Service\Kafka\KafkaConsumer:
+        public: true
+        arguments:
+            $logger: '@logger'
+
+    App\Service\Kafka\KafkaProducer:
+        public: true
+        arguments:
+            $logger: '@logger'
+
+    App\Service\Mapper\Mapper:
+        arguments:
+            $logger: '@logger'
+
+    App\Service\Factory\SftpTransportFactory:
+        arguments:
+            $logger: '@logger'
+            $configPath: '%kernel.project_dir%/config/sftp_config.json'
+
+    App\Service\Aggregator\Aggregator:
+        public: true
+        arguments:
+            $logger: '@logger'
+            $mapper: '@App\Service\Mapper\Mapper'
+            $producer: '@App\Service\Kafka\KafkaProducer'
+            $httpTransport: '@App\Service\Transport\HttpTransport'
+            $sftpTransportFactory: '@App\Service\Factory\SftpTransportFactory'
+            $googleSheetsInputHandler: '@App\Service\InputHandler\GoogleSheetsInputHandler'
+            $googleDriveFolderHandler: '@App\Service\InputHandler\GoogleDriveFolderHandler'
+            $morrisXmlSftpInputHandler: '@App\Service\InputHandler\MorrisXmlSftpInputHandler'
+
+    App\Service\InputHandler\GoogleApiInputHandler:
+        abstract: true
+        arguments:
+            $logger: '@logger'
+            $credentialsPath: '%kernel.project_dir%/config/credentials.json'
+            $tokenPath: '%kernel.project_dir%/config/token.json'
+
+    App\Service\InputHandler\GoogleDriveFolderHandler:
+        arguments:
+            $logger: '@logger'
+            $credentialsPath: '%kernel.project_dir%/config/credentials.json'
+            $tokenPath: '%kernel.project_dir%/config/token.json'
+        tags: [ 'app.input_handler' ]
+
+    App\Service\Transport\HttpTransport:
+        arguments:
+            $logger: '@logger'
+
+
+    App\Service\InputHandler\GoogleSheetsInputHandler:
+        arguments:
+            $logger: '@logger'
+            $credentialsPath: '%kernel.project_dir%/config/credentials.json'
+            $tokenPath: '%kernel.project_dir%/config/token.json'
+        tags: [ 'app.input_handler' ]
+
+    App\Service\InputHandler\MorrisXmlSftpInputHandler:
+        arguments:
+            $logger: '@logger'
+            $configPath: '%kernel.project_dir%/config/sftp_config.json'
+        tags: [ 'app.input_handler' ]
+
+    App\Service\Factory\RestApiHandlerFactory:
+      arguments:
+        $logger: '@logger'
+        $kernel: '@kernel'
+
+    App\Command\ConsumerCommand:
+        arguments:
+            $kafkaConsumer: '@App\Service\Kafka\KafkaConsumer'
+            $aggregator: '@App\Service\Aggregator\Aggregator'
+        tags:
+            - { name: 'console.command' }

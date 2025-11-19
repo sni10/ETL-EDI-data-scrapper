@@ -1,0 +1,33 @@
+.idea
+.vscode
+
+.env.*
+.env
+
+*.log
+*.cache
+
+###> symfony/framework-bundle ###
+/.env
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+/config/token.json
+/config/credentials.json
+/config/rest.json
+/config/rest.tokens.json
+
+/config/entrypoint.sh
+/config/php.ini
+/config/php-fpm.conf
+
+/config/sftp_config.json
+/propose/
+/.claude/
+test_auth_prod.php

@@ -1,0 +1,61 @@
+monolog:
+  channels:
+    - slack
+    - app
+
+  handlers:
+    combined:
+      type: group
+      members: [slack, app]
+
+    slack:
+      type: slackwebhook
+      level: error
+      channels: ["slack"]
+      webhook_url: '%env(SLACK_WEBHOOK_URL)%'
+      bot_name: 'DEFAULT-SCRAPPER_ENV-EDI-XXX'
+      app_name: 'ScraperErrorBotApp'
+      icon_emoji: ':construction:'
+      include_extra: true
+
+    app:
+      type: stream
+      path: "%kernel.logs_dir%/%kernel.environment%.log"
+      level: error
+      channels: ["app"]
+
+when@dev, when@test:
+  monolog:
+    handlers:
+      slack:
+        type: slackwebhook
+        level: error
+        channels: ["slack"]
+        webhook_url: '%env(SLACK_WEBHOOK_URL)%'
+        bot_name: 'Test-Scrapper-EDI-183'
+        app_name: 'ScraperErrorBotApp'
+        icon_emoji: ':building_construction:'
+        include_extra: true
+      app:
+        type: stream
+        path: "%kernel.logs_dir%/%kernel.environment%.log"
+        level: debug
+        channels: ["app"]
+
+when@prod:
+  monolog:
+    handlers:
+      slack:
+        type: slackwebhook
+        level: error
+        channels: ["slack"]
+        webhook_url: '%env(SLACK_WEBHOOK_URL)%'
+        bot_name: 'Prod-Scrapper-EDI-145'
+        app_name: 'ScraperErrorBotApp'
+        icon_emoji: ':mega:'
+        include_extra: true
+      app:
+        type: stream
+        path: "%kernel.logs_dir%/%kernel.environment%.log"
+        level: error
+        channels: ["app"]

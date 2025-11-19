@@ -1,0 +1,6 @@
+framework:
+  messenger:
+    transports:
+      kafka: '%env(KAFKA_TRANSPORT_DSN)%'
+    routing:
+      'App\Model\DataRow': kafka

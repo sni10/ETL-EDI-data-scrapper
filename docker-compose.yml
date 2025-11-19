@@ -1,0 +1,17 @@
+
+services:
+    php-up-edi:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                ENVIRONMENT: ${ENVIRONMENT}
+        env_file:
+            - "docker/config-envs/${ENVIRONMENT}/.env.${ENVIRONMENT}"
+        command: composer run-script serve
+
+
+networks:
+    walmart_scraper_network:
+        external: true
+        name: walmart_scraper_network
