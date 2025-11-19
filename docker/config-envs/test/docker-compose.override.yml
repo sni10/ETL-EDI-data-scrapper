@@ -3,7 +3,7 @@ services:
     php-up-edi:
         container_name: php-up-edi
         volumes:
-            - .:/var/www/up-edi-scraper
+            - .:/var/www/etl-edi-scraper
         networks:
             - walmart_scraper_network
         command: composer run-script serve
