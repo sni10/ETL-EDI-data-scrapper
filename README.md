@@ -1,5 +1,13 @@
 # UP EDI Scraper — агрегатор EDI‑данных поставщиков
 
+[![Release](https://img.shields.io/github/v/release/sni10/ETL-EDI-data-scrapper?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sni10/ETL-EDI-data-scrapper/releases)
+[![Release Workflow](https://img.shields.io/github/actions/workflow/status/sni10/ETL-EDI-data-scrapper/release.yml?style=for-the-badge&logo=github-actions&logoColor=white&label=Release)](https://github.com/sni10/ETL-EDI-data-scrapper/actions/workflows/release.yml)
+[![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://php.net)
+[![Symfony](https://img.shields.io/badge/Symfony-7.1-000000?style=for-the-badge&logo=symfony&logoColor=white)](https://symfony.com)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![Kafka](https://img.shields.io/badge/Kafka-Enabled-231F20?style=for-the-badge&logo=apache-kafka&logoColor=white)](https://kafka.apache.org)
+[![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
+
 Консольное приложение на Symfony 7 / PHP 8.2+, которое агрегирует и нормализует EDI‑данные (прайсы, остатки и т.п.) от разных поставщиков из различных источников (Google Sheets, HTTP/SFTP‑файлы, REST API) и публикует результат в Kafka.
 
 ## Основные возможности
@@ -33,7 +41,7 @@
 
 ```powershell
 git clone <repository-url>
-cd up-edi-scraper
+cd etl-edi-scraper
 
 # выбрать окружение (test или prod)
 $env:ENVIRONMENT="test"
@@ -67,7 +75,7 @@ docker-compose down
 При старте контейнера `supervisord` автоматически запускает консольную команду:
 
 ```powershell
-php /var/www/up-edi-scraper/bin/console app:consume
+php /var/www/etl-edi-scraper/bin/console app:consume
 ```
 
 ## Поддерживаемые типы источников данных (type_id)

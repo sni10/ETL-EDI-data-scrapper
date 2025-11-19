@@ -48,17 +48,17 @@ COPY ./docker/config-envs/${ENVIRONMENT}/php.ini /usr/local/etc/php/conf.d/custo
 COPY ./config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Основной код
-WORKDIR /var/www/up-edi-scraper
+WORKDIR /var/www/etl-edi-scraper
 COPY . .
 
 # Копируем моковые конфигурационные файлы (будут заменены реальными данными в runtime)
-COPY ./docker/configs-data/credentials.json /var/www/up-edi-scraper/config/credentials.json
-COPY ./docker/configs-data/token.json /var/www/up-edi-scraper/config/token.json
-COPY ./docker/configs-data/sftp_config.json /var/www/up-edi-scraper/config/sftp_config.json
-COPY ./docker/configs-data/rest.json /var/www/up-edi-scraper/config/rest.json
-COPY ./docker/configs-data/rest.tokens.json /var/www/up-edi-scraper/config/rest.tokens.json
+COPY ./docker/configs-data/credentials.json /var/www/etl-edi-scraper/config/credentials.json
+COPY ./docker/configs-data/token.json /var/www/etl-edi-scraper/config/token.json
+COPY ./docker/configs-data/sftp_config.json /var/www/etl-edi-scraper/config/sftp_config.json
+COPY ./docker/configs-data/rest.json /var/www/etl-edi-scraper/config/rest.json
+COPY ./docker/configs-data/rest.tokens.json /var/www/etl-edi-scraper/config/rest.tokens.json
 
-COPY ./docker/config-envs/${ENVIRONMENT}/.env.${ENVIRONMENT} /var/www/up-edi-scraper/.env
+COPY ./docker/config-envs/${ENVIRONMENT}/.env.${ENVIRONMENT} /var/www/etl-edi-scraper/.env
 
 # Настройка прав
 RUN chown -R www-data:www-data /var/www \
