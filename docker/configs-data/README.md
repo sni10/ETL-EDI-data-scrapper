@@ -6,7 +6,7 @@
 
 ## Назначение
 
-При сборке Docker-образа файлы из этой директории копируются в `/var/www/up-edi-scraper/config/` внутри контейнера (см. `Dockerfile`).
+При сборке Docker-образа файлы из этой директории копируются в `/var/www/etl-edi-scraper/config/` внутри контейнера (см. `Dockerfile`).
 
 Эти файлы необходимы для успешной сборки образа, так как:
 - Реальные конфигурационные файлы содержат **секретные данные** (API ключи, пароли, токены)
@@ -335,17 +335,17 @@
 ```php
 // src/Service/InputHandler/GoogleSheetsInputHandler.php
 $client = new Google_Client();
-$client->setAuthConfig('/var/www/up-edi-scraper/config/credentials.json');
+$client->setAuthConfig('/var/www/etl-edi-scraper/config/credentials.json');
 $client->setAccessType('offline');
 
 // Загрузка токена
-$accessToken = json_decode(file_get_contents('/var/www/up-edi-scraper/config/token.json'), true);
+$accessToken = json_decode(file_get_contents('/var/www/etl-edi-scraper/config/token.json'), true);
 $client->setAccessToken($accessToken);
 
 // Автообновление токена
 if ($client->isAccessTokenExpired()) {
     $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-    file_put_contents('/var/www/up-edi-scraper/config/token.json', json_encode($client->getAccessToken()));
+    file_put_contents('/var/www/etl-edi-scraper/config/token.json', json_encode($client->getAccessToken()));
 }
 ```
 
@@ -353,7 +353,7 @@ if ($client->isAccessTokenExpired()) {
 
 ```php
 // src/Service/Factory/SftpTransportFactory.php
-$config = json_decode(file_get_contents('/var/www/up-edi-scraper/config/sftp_config.json'), true);
+$config = json_decode(file_get_contents('/var/www/etl-edi-scraper/config/sftp_config.json'), true);
 $supplierConfig = $config[$supplierId] ?? null;
 
 if (!$supplierConfig) {
@@ -373,8 +373,8 @@ $sftp = new SftpTransport(
 
 ```php
 // src/Service/Factory/RestApiHandlerFactory.php
-$restConfig = json_decode(file_get_contents('/var/www/up-edi-scraper/config/rest.json'), true);
-$tokensConfig = json_decode(file_get_contents('/var/www/up-edi-scraper/config/rest.tokens.json'), true);
+$restConfig = json_decode(file_get_contents('/var/www/etl-edi-scraper/config/rest.json'), true);
+$tokensConfig = json_decode(file_get_contents('/var/www/etl-edi-scraper/config/rest.tokens.json'), true);
 
 $supplierRestConfig = $restConfig[$supplierId] ?? null;
 $supplierToken = $tokensConfig[$supplierId]['token'] ?? null;
@@ -447,7 +447,7 @@ A: Зависит от инфраструктуры. Обычно: Kubernetes Se
 ## Пример реальной структуры проекта
 
 ```
-up-edi-scraper/
+etl-edi-scraper/
 ├── config/                          # Реальные конфиги (в .gitignore, НЕ в git)
 │   ├── credentials.json             # ← Реальный Google OAuth credentials
 │   ├── token.json                   # ← Реальный Google OAuth token
@@ -469,7 +469,7 @@ up-edi-scraper/
 ```
 
 **При сборке Docker-образа**:
-- Моковые файлы из `docker/configs-data/` копируются в `/var/www/up-edi-scraper/config/` внутри контейнера
+- Моковые файлы из `docker/configs-data/` копируются в `/var/www/etl-edi-scraper/config/` внутри контейнера
 
 **При запуске контейнера**:
 - Реальные файлы из `/config/` на хосте заменяют моковые файлы в контейнере
