@@ -1,0 +1,41 @@
+[
+  {
+    "supplier_id": 100,
+    "name": "Example REST API Supplier",
+    "type_id": 8,
+    "source": "https://api.example.com/v1/products/list",
+    "column_map_rules": {
+      "qty": "stock_quantity",
+      "upc": "barcode",
+      "price": "wholesale_price"
+    },
+    "range": null,
+    "version": 1
+  },
+  {
+    "supplier_id": 101,
+    "name": "Example Google Sheets Supplier",
+    "type_id": 1,
+    "source": "1aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789AbCdEfG",
+    "column_map_rules": {
+      "qty": "Stock Level",
+      "upc": "Product UPC",
+      "price": "Price"
+    },
+    "range": "A1:E",
+    "version": 1
+  },
+  {
+    "supplier_id": 102,
+    "name": "Example CSV HTTP Supplier",
+    "type_id": 2,
+    "source": "https://example.com/feeds/inventory.csv",
+    "column_map_rules": {
+      "qty": "Quantity",
+      "upc": "UPC",
+      "price": "Wholesale"
+    },
+    "range": null,
+    "version": 1
+  }
+]

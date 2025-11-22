@@ -1,9 +1,13 @@
-
 services:
     php-up-edi:
-        container_name: php-up-edi
-        volumes:
-            - .:/var/www/etl-edi-scraper
-        networks:
-            - walmart_scraper_network
-        command: composer run-script serve
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                APP_ENV: ${APP_ENV}
+        environment:
+            APP_ENV: ${APP_ENV}
+            XDEBUG_MODE: ${XDEBUG_MODE}
+#        volumes:
+#            - .:/var/www/etl-edi-scraper
+        command: tail -f /dev/null
