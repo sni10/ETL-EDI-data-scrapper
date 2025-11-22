@@ -1,78 +1,43 @@
-name: Create Release
+name: Release
 
 on:
   push:
-    branches:
-      - main
-
-# Осмысленное имя ранa в Actions
-run-name: >-
-  Release: push on ${{ github.ref_name }} by ${{ github.actor }} (commit ${{ github.sha }})
+    branches: [main]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Get latest tag
-        id: get_latest_tag
+        id: tag
         run: |
-          # Get the latest tag, if no tags exist use v0.0.0
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "Latest tag: $LATEST_TAG"
+          LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
 
       - name: Calculate next version
-        id: calculate_version
+        id: version
         run: |
-          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
-
-          # Remove 'v' prefix and split version
-          VERSION=${LATEST_TAG#v}
+          VERSION="${{ steps.tag.outputs.latest }}"
+          VERSION=${VERSION#v}
           IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+          echo "new=v${MAJOR}.${MINOR}.$((PATCH + 1))" >> $GITHUB_OUTPUT
 
-          # Increment patch version
-          PATCH=$((PATCH + 1))
-
-          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "New version: $NEW_VERSION"
-
-      - name: Generate changelog from commits
+      - name: Generate changelog
         id: changelog
         run: |
-          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
-
-          if [ "$LATEST_TAG" = "v0.0.0" ]; then
-            # Первый релиз: берём все коммиты
-            RANGE=""
-          else
-            RANGE="$LATEST_TAG..HEAD"
-          fi
-
-          echo "Generating changelog for range: ${RANGE:-all commits}"
-
-          REPO="$GITHUB_REPOSITORY"
-
-          # Список коммитов в Markdown:
-          # - Message (`short_sha`) ([view](https://github.com/owner/repo/commit/full_sha))
-          COMMITS=$(git log $RANGE \
-            --pretty=format:'- %s (`%h`) ([view](https://github.com/'"$REPO"'/commit/%H))')
-
-          if [ -z "$COMMITS" ]; then
-            COMMITS="- No commits since $LATEST_TAG (nothing to list)"
-          fi
-
+          TAG="${{ steps.tag.outputs.latest }}"
+          RANGE=$([ "$TAG" = "v0.0.0" ] && echo "" || echo "$TAG..HEAD")
+          COMMITS=$(git log $RANGE --pretty=format:'- %s (`%h`)' 2>/dev/null || echo "- Initial release")
           {
-            echo "changelog<<EOF"
+            echo "body<<EOF"
             echo "$COMMITS"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
@@ -80,19 +45,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.calculate_version.outputs.new_version }}
-          # Имя релиза в классическом формате
-          name: Release ${{ steps.calculate_version.outputs.new_version }}
-
+          tag_name: ${{ steps.version.outputs.new }}
+          name: ${{ steps.version.outputs.new }}
           body: |
-            ## Changes in this Release
-
-            Triggered by push to `${{ github.ref_name }}` (commit `${{ github.sha }}`)
-
-            ---
-
-            ### Commits since ${{ steps.get_latest_tag.outputs.latest_tag }}
-            ${{ steps.changelog.outputs.changelog }}
-
+            ## Changes
+            ${{ steps.changelog.outputs.body }}
           draft: false
           prerelease: false

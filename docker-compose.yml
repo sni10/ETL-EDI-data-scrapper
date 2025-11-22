@@ -1,17 +1,20 @@
-
 services:
     php-up-edi:
+        image: up-edi-scraper-php:latest
         build:
             context: .
             dockerfile: Dockerfile
             args:
-                ENVIRONMENT: ${ENVIRONMENT}
-        env_file:
-            - "docker/config-envs/${ENVIRONMENT}/.env.${ENVIRONMENT}"
-        command: composer run-script serve
+                APP_ENV: ${APP_ENV}
+        environment:
+            APP_ENV: ${APP_ENV}
+        container_name: php-up-edi
 
+#        For prod
+#        command: composer run-script serve
 
-networks:
-    walmart_scraper_network:
-        external: true
-        name: walmart_scraper_network
+# For prod
+#networks:
+#    walmart_scraper_network:
+#        external: true
+#        name: walmart_scraper_network

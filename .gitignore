@@ -30,7 +30,7 @@
 /config/sftp_config.json
 /propose/
 /.claude/
-test_auth_prod.php
 /.junie/
+test_auth_prod.php
 /examples/
 !/.env.example
