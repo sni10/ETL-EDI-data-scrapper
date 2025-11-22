@@ -1,14 +1,16 @@
 name: Create Release
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
 
+# Осмысленное имя ранa в Actions
+run-name: >-
+  Release: push on ${{ github.ref_name }} by ${{ github.actor }} (commit ${{ github.sha }})
+
 jobs:
   release:
-    if: github.event.pull_request.merged == true && github.event.pull_request.head.ref == 'stage'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -44,18 +46,53 @@ jobs:
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            # Первый релиз: берём все коммиты
+            RANGE=""
+          else
+            RANGE="$LATEST_TAG..HEAD"
+          fi
+
+          echo "Generating changelog for range: ${RANGE:-all commits}"
+
+          REPO="$GITHUB_REPOSITORY"
+
+          # Список коммитов в Markdown:
+          # - Message (`short_sha`) ([view](https://github.com/owner/repo/commit/full_sha))
+          COMMITS=$(git log $RANGE \
+            --pretty=format:'- %s (`%h`) ([view](https://github.com/'"$REPO"'/commit/%H))')
+
+          if [ -z "$COMMITS" ]; then
+            COMMITS="- No commits since $LATEST_TAG (nothing to list)"
+          fi
+
+          {
+            echo "changelog<<EOF"
+            echo "$COMMITS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.calculate_version.outputs.new_version }}
+          # Имя релиза в классическом формате
           name: Release ${{ steps.calculate_version.outputs.new_version }}
+
           body: |
             ## Changes in this Release
 
-            Merged from stage to main via PR #${{ github.event.pull_request.number }}
+            Triggered by push to `${{ github.ref_name }}` (commit `${{ github.sha }}`)
 
-            **Pull Request:** ${{ github.event.pull_request.title }}
+            ---
 
-            For detailed changes, see the [Pull Request](${{ github.event.pull_request.html_url }})
+            ### Commits since ${{ steps.get_latest_tag.outputs.latest_tag }}
+            ${{ steps.changelog.outputs.changelog }}
+
           draft: false
           prerelease: false

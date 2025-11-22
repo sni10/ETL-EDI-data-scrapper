@@ -1,0 +1,83 @@
+name: Tests
+
+run-name: >-
+  Tests: ${{ github.event_name }} on ${{ github.ref_name }} by ${{ github.actor }} (commit ${{ github.sha }})
+
+on:
+  pull_request:
+    branches:
+      - dev      # feature → dev
+      - stage    # dev → stage
+      - main     # stage → main
+
+  push:
+    branches:
+      - main
+      - feature/*
+      - hotfix/*
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy environment file
+        run: |
+          cp .env.example .env
+
+      - name: Load environment variables
+        run: |
+          cat .env >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build PHP image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: tasks-php:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            APP_ENV=${{ env.APP_ENV }}
+
+      - name: Start containers
+        run: |
+          docker compose -f docker-compose.yml -f docker/config-envs/${APP_ENV}/docker-compose.override.yml up -d
+
+      - name: Run tests
+        run: |
+          docker compose exec php vendor/bin/phpunit --colors=always
+
+      - name: Run PHPUnit with coverage
+        run: |
+          docker compose exec -e XDEBUG_MODE=${XDEBUG_MODE} php vendor/bin/phpunit \
+            --log-junit storage/coverage-report/phpunit-report.xml \
+            --coverage-text \
+            --coverage-html=storage/coverage-report \
+            --coverage-clover=storage/coverage-report/phpunit-coverage.xml
+
+      - name: Copy coverage reports from container
+        if: always()
+        run: |
+          docker compose cp php:/var/www/storage/coverage-report ./storage/
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: storage/coverage-report
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml -f docker/config-envs/${APP_ENV}/docker-compose.override.yml down -v
