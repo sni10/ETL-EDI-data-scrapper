@@ -1,10 +1,20 @@
 name: Tests
 
+run-name: >-
+  Tests: ${{ github.event_name }} on ${{ github.ref_name }} by ${{ github.actor }} (commit ${{ github.sha }})
+
 on:
   pull_request:
-    branches: [dev, stage, main]
+    branches:
+      - dev      # feature → dev
+      - stage    # dev → stage
+      - main     # stage → main
+
   push:
-    branches: [main, feature/*, hotfix/*]
+    branches:
+      - main
+      - feature/*
+      - hotfix/*
 
 jobs:
   test:
@@ -14,31 +24,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build
+      - name: Copy environment file
         run: |
-          docker compose --env-file .env.test \
-            -f docker-compose.yml \
-            -f docker/config-envs/test/docker-compose.override.yml \
-            build
+          cp .env.example .env
+
+      - name: Load environment variables
+        run: |
+          cat .env >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx Cache
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build PHP image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: up-edi-scraper-php:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            APP_ENV=${{ env.APP_ENV }}
 
       - name: Start container
         run: |
-          docker compose --env-file .env.test \
-            -f docker-compose.yml \
-            -f docker/config-envs/test/docker-compose.override.yml \
+          docker compose -f docker-compose.yml \
+            -f docker/config-envs/${APP_ENV}/docker-compose.override.yml \
             up -d
 
-      - name: Run tests
+      - name: Run PHPUnit with coverage
         run: |
-          docker compose --env-file .env.test \
-            -f docker-compose.yml \
-            -f docker/config-envs/test/docker-compose.override.yml \
-            exec -T php-up-edi php vendor/bin/phpunit --coverage-text --colors=always --testdox
+          docker compose exec -e XDEBUG_MODE=${XDEBUG_MODE} php vendor/bin/phpunit \
+            --log-junit storage/coverage-report/phpunit-report.xml \
+            --coverage-text \
+            --coverage-html=storage/coverage-report \
+            --coverage-clover=storage/coverage-report/phpunit-coverage.xml
+
+      - name: Copy coverage reports from container
+        if: always()
+        run: |
+          docker compose cp php:/var/www/storage/coverage-report ./storage/
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: storage/coverage-report
+          retention-days: 30
 
       - name: Cleanup
         if: always()
         run: |
-          docker compose --env-file .env.test \
-            -f docker-compose.yml \
-            -f docker/config-envs/test/docker-compose.override.yml \
-            down -v
+          docker compose -f docker-compose.yml -f docker/config-envs/${APP_ENV}/docker-compose.override.yml down -v
