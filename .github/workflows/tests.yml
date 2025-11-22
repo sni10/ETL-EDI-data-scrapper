@@ -56,7 +56,7 @@ jobs:
 
       - name: Run PHPUnit with coverage
         run: |
-          docker compose exec -e XDEBUG_MODE=${XDEBUG_MODE} php vendor/bin/phpunit \
+          docker compose exec -e XDEBUG_MODE=${XDEBUG_MODE} php-up-edi vendor/bin/phpunit \
             --log-junit storage/coverage-report/phpunit-report.xml \
             --coverage-text \
             --coverage-html=storage/coverage-report \
@@ -65,7 +65,7 @@ jobs:
       - name: Copy coverage reports from container
         if: always()
         run: |
-          docker compose cp php:/var/www/storage/coverage-report ./storage/
+          docker compose cp php-up-edi:/var/www/storage/coverage-report ./storage/
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
