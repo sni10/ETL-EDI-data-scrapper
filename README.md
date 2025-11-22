@@ -5,7 +5,7 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/sni10/ETL-EDI-data-scrapper/tests.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=Tests)](https://github.com/sni10/ETL-EDI-data-scrapper/actions/workflows/tests.yml)
 [![Coverage](https://img.shields.io/badge/Coverage-65%25-brightgreen?style=for-the-badge&logo=codecov&logoColor=white)](https://github.com/sni10/ETL-EDI-data-scrapper/actions/workflows/tests.yml)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
-[![Symfony](https://img.shields.io/badge/Symfony-7.x-FF2D20?style=for-the-badge&logo=Symfony&logoColor=white)](https://symfony.com/)
+[![Symfony](https://img.shields.io/badge/Symfony-7.x-2496ED?style=for-the-badge&logo=Symfony&logoColor=white)](https://symfony.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
