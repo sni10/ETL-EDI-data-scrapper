@@ -88,6 +88,4 @@ RUN if [ "$APP_ENV" = "prod" ]; then \
 EXPOSE 9003
 EXPOSE 9000
 
-CMD if [ "$APP_ENV" = "test" ]; then \
-        ["php-fpm"]; \
-    fi
+CMD ["sh", "-c", "if [ \"$APP_ENV\" = \"test\" ]; then php-fpm; else composer run-script serve; fi"]
