@@ -65,7 +65,7 @@ jobs:
       - name: Copy coverage reports from container
         if: always()
         run: |
-          docker compose cp php-up-edi:/var/www/storage/coverage-report ./storage/
+          docker compose cp php-up-edi:/var/www/etl-edi-scraper/storage/coverage-report ./storage/
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
