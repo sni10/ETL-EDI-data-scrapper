@@ -31,3 +31,6 @@
 /propose/
 /.claude/
 test_auth_prod.php
+/.junie/
+/examples/
+!/.env.example
