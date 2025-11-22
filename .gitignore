@@ -34,4 +34,3 @@
 test_auth_prod.php
 /examples/
 !/.env.example
-/storage/
